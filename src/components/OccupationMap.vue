@@ -8,7 +8,7 @@
   <div class="content">
     <div class="day-headers">
       <div v-for="(day, index) in days" :key="`header-${index}`" class="day-header">
-        <p class="date">{{ dayToString(day) }}</p>
+        <p class="date" :class="istoday(day) ? 'today' : ''">{{ dayToString(day) }}</p>
         <p class="weekday">{{ getWeekDay(day) }}</p>
       </div>
     </div>
@@ -65,6 +65,9 @@ function changeDay(n) {
   key.value += 1
   show.value = true
 }
+function istoday(date) {
+  return date.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR')
+}
 function changeSpace(space) {
   show.value = false
   currentSpace.value = space
@@ -94,15 +97,16 @@ defineExpose({
 }
 
 .day-headers {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   width: calc(100% - 60px);
   background-color: #f0f0f0;
   padding: 10px;
   color: black;
   text-align: center;
-  justify-content: space-around;
   margin-left: 60px;
-  /* Corresponde à largura da coluna de horários */
+  max-height: 10%;
+  min-height: 10%;
 }
 
 .day-header {
@@ -110,14 +114,15 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
   margin: 0;
   padding: 0 5px;
-  min-width: 80px;
 }
 
 .day-header .date {
   margin: 0;
   padding: 0;
+  color: #4a90e2;
 }
 
 .day-header .weekday {
@@ -125,6 +130,12 @@ defineExpose({
   padding: 0;
   font-size: 0.75rem;
   color: #666;
+}
+
+.today {
+  font-weight: 900;
+  color: #001024;
+  font-size: 1.0rem;
 }
 
 .map-content {
