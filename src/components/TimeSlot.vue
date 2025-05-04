@@ -32,15 +32,6 @@ const textareaState = reactive({
   editing: false
 })
 
-function asObject() {
-  return {
-    date: props.day.toISOString().split('T')[0],
-    hour: props.time,
-    space: props.space,
-    client: textareaState.text
-  }
-}
-
 const editingText = computed({
   get: () => store.editingText.value,
   set: (val) => { store.editingText.value = val }
@@ -65,7 +56,6 @@ onMounted(() => {
 
   store.registerTextarea(props.space, props.day, props.time, textareaState)
 
-  const existing = store.getRegisteredTextArea(props.space, props.day, props.time)
 })
 
 function handleClick() {
@@ -83,6 +73,10 @@ function handleClick() {
 
   if (someoneEditing) {
     return
+  }
+
+  if (!event.ctrlKey) {
+    store.unselectAll()
   }
 
   const newSelected = !textareaState.selected
@@ -192,13 +186,13 @@ async function saveColor() {
 }
 
 .textarea-wrapper.editing {
-  background-color: transparent;
   border: 1px solid green;
+  box-shadow: 0 0 5px green;
 }
 
 .textarea-wrapper.selectedOnly {
   background-color: #8c9af5;
-  border: 1px solid #1736ff;
+  box-shadow: 0 0 5px #1736ff;
 }
 
 .textarea-content {
