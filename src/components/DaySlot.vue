@@ -9,7 +9,7 @@
     </div>
     <div v-else class="time-content">
       <TimeSlot v-for="time in timeSlots" :key="time" :initial-text="getInitialText(time)" :space="props.space"
-        :day="day" :time="time" />
+        :initialColor="getInitialColor(time)" :day="day" :time="time" />
     </div>
   </div>
 </template>
@@ -26,6 +26,7 @@ const props = defineProps({
 })
 
 const processedData = ref({})
+const processedDataColor = ref({})
 const loading = ref(true)
 const error = ref(null)
 const day = ref(props.day)
@@ -46,6 +47,12 @@ function dayToString(date_obj) {
 function getInitialText(time) {
   return processedData.value[time] || ''
 }
+
+function getInitialColor(time) {
+  return processedDataColor.value[time] || 'white'
+}
+
+
 
 watch(day, () => {
   displayDate.value = dayToString(day.value)
@@ -69,17 +76,22 @@ async function fetchTimeSlotData() {
 
     // Process the array into an object with time keys
     const data = {}
+    const colors = {}
 
     if (Array.isArray(response.data)) {
       response.data.forEach(booking => {
         if (booking.hour && booking.client) {
           data[booking.hour] = booking.client
         }
+        if (booking.hour && booking.color) {
+          colors[booking.hour] = booking.color
+        }
       })
     }
 
     // Store processed data
     processedData.value = data
+    processedDataColor.value = colors
     console.log('Processed data:', day, processedData.value)
   } catch (err) {
     console.error('Error fetching time slot data:', err)

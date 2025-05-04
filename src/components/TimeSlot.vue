@@ -1,6 +1,8 @@
 <script setup>
 import { reactive, onMounted, computed, watch } from 'vue'
 import { store } from '../store/store.js'
+import { inject, ref } from 'vue'
+import axios from 'axios'
 
 const props = defineProps({
   initialText: {
@@ -10,9 +12,16 @@ const props = defineProps({
   space: String,
   day: Date,
   time: Number,
+  initialColor: {
+    type: String,
+    default: '#FFFFFF'
+  }
 })
 
 const getKey = () => store.createKey(props.space, props.day, props.time)
+const paintMode = inject('paintMode')
+const selectedColor = inject('selectedColor')
+const color = ref(props.initialColor)
 
 const textareaState = reactive({
   text: props.initialText,
@@ -60,6 +69,16 @@ onMounted(() => {
 })
 
 function handleClick() {
+
+  if (paintMode.value) {
+    if (color.value === selectedColor.value) {
+      return
+    }
+    color.value = selectedColor.value
+    saveColor()
+    return
+  }
+
   const someoneEditing = Object.values(store.textareaMap).some(ta => ta.editing)
 
   if (someoneEditing) {
@@ -114,16 +133,42 @@ function handleKeyDown(event) {
     }
   }
 }
+
+function getColor() {
+  if (textareaState.selected) {
+    return "#ccccff";
+  } else {
+    return color.value
+  }
+}
+
+async function saveColor() {
+  const path = "http://localhost:3000/api/horarios/color"
+  const requestBody = {
+    date: textareaState.date,
+    hour: textareaState.hour,
+    space: textareaState.space,
+    color: color.value
+  }
+  const response = await axios.put(path, requestBody)
+  if (response.status === 200) {
+    console.log("Color saved successfully")
+  } else {
+    console.error("Failed to save color", response)
+  }
+}
+
 </script>
 
 <template>
-  <div class="textarea-wrapper" :class="{ selected: textareaState.selected, editing: textareaState.editing }"
-    @click="handleClick" @dblclick="handleDoubleClick">
+  <div class="textarea-wrapper" @click="handleClick" @dblclick="handleDoubleClick"
+    :style="{ backgroundColor: getColor() }">
     <div v-if="!textareaState.editing" class="textarea-content">
       {{ textareaState.text }}
     </div>
     <textarea v-else v-model="editingText" @blur="saveChanges" @keydown="handleKeyDown" class="textarea-edit"
-      placeholder="Enter text here" autofocus></textarea>
+      :class="{ selected: textareaState.selected, editing: textareaState.editing }" placeholder="Enter text here"
+      autofocus></textarea>
   </div>
 </template>
 
@@ -143,7 +188,7 @@ function handleKeyDown(event) {
 }
 
 .textarea-wrapper.selected {
-  border-color: #4a90e2;
+  border: 2px solid #a9ccf5;
   background-color: #ccccff;
 }
 
