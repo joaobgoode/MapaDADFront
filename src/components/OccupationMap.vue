@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="js">
-import { defineProps, onMounted, onUnmounted, ref, reactive, watch, computed, provide } from 'vue'
+import { defineProps, onMounted, ref, watch, computed, provide } from 'vue'
 import { store } from '../store/store.js'
 import DaySlot from './DaySlot.vue'
 import ColorPicker from './ColorPicker.vue'
@@ -235,7 +235,6 @@ function clickDay(event) {
   }
   const selected_day = event.currentTarget.dataset.day
   const day = new Date(selected_day)
-  console.log(day)
   if (event.ctrlKey) {
     for (let time of timeSlots) {
       store.selectTextarea(currentSpace.value, day, time, false)
