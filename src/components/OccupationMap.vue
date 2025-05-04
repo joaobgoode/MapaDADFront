@@ -24,6 +24,7 @@
       <i class="bi bi-caret-right-square"></i>
     </button>
 
+
     <!-- Conteúdo principal -->
     <div class="content">
       <div class="day-headers">
@@ -34,9 +35,9 @@
       </div>
       <div class="map-content">
         <div class="horarios">
-          <p v-for="time in timeSlots" :key="`time-${time}`">
+          <div v-for="time in timeSlots" :key="`time-${time}`">
             {{ formatTime(time) }}
-          </p>
+          </div>
         </div>
         <div class="days-container">
           <DaySlot v-if="show" v-for="(day, index) in days" :key="`${currentSpace}-${key}-${index}`" :day="day"
@@ -54,18 +55,25 @@ import DaySlot from './DaySlot.vue'
 
 const props = defineProps({
   space: String,
+  filter: {
+    type: Array,
+    default: () => []
+  },
+  selectedDate: Date,
 })
 
 const currentSpace = ref(props.space)
 const startDate = ref(new Date())
 const show = ref(true)
 const key = ref(0)
+const filterMode = ref(false)
 
 // Color picker variables
 const showColorPicker = ref(false)
 const selectedColor = ref('#FFFFFF')
 const selectedColorName = ref('Branco')
 const paintMode = ref(false)
+const selectedDate = ref(props.selectedDate)
 
 provide('selectedColor', selectedColor)
 provide('paintMode', paintMode)
@@ -73,6 +81,11 @@ provide('paintMode', paintMode)
 // Event listener para fechar o dropdown ao clicar fora
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+
+  // Se houver um filtro inicial, ative o modo de filtro
+  if (props.filter && props.filter.length > 0) {
+    filterMode.value = true
+  }
 })
 
 // Remover listener ao desmontar o componente
@@ -99,9 +112,30 @@ const colorOptions = {
   'Magenta': '#E91E63'
 }
 
+const filterIndex = ref(0)
+const appliedPicker = ref(true)
 const days = computed(() => {
   const result = []
-  const baseDate = new Date(startDate.value)
+  // Verificar se estamos no modo filtro e se o array de filtro tem elementos
+  if (filterMode.value && props.filter && props.filter.length > 0) {
+    console.log("Usando filtro de datas:", props.filter)
+
+    // Se não temos datas suficientes para mostrar, usamos apenas as disponíveis
+    const maxIndex = Math.min(7, props.filter.length - filterIndex.value)
+
+    // Usar apenas as datas do filtro
+    for (let i = 0; i < maxIndex; i++) {
+      result.push(props.filter[i + filterIndex.value])
+    }
+    return result
+  }
+
+  // Modo normal: mostrar semana a partir da data inicial
+  let baseDate = new Date(startDate.value)
+  if (!appliedPicker.value) {
+    baseDate = selectedDate.value || new Date()
+    appliedPicker.value = false
+  }
   for (let i = 0; i < 7; i++) {
     const day = new Date(baseDate)
     day.setDate(baseDate.getDate() + i)
@@ -109,6 +143,33 @@ const days = computed(() => {
   }
   return result
 })
+
+// Observar mudanças no filtro para atualizar o calendário
+watch(() => props.filter, (newFilter) => {
+  if (newFilter && newFilter.length > 0) {
+    // Ativar o modo filtro quando o filtro for aplicado
+    filterMode.value = true
+    filterIndex.value = 0  // Resetar para mostrar a partir do início do filtro
+    refreshCalendar()
+  } else {
+    // Desativar o modo filtro quando o filtro for limpo
+    filterMode.value = false
+    // Voltar para a data atual
+    startDate.value = new Date()
+    refreshCalendar()
+  }
+}, { deep: true })
+
+
+
+// Função para atualizar o calendário
+function refreshCalendar() {
+  show.value = false
+  key.value += 1
+  setTimeout(() => {
+    show.value = true
+  }, 10)
+}
 
 const timeSlots = [
   600, 630, 700, 730, 800, 830, 900, 930, 1000, 1030,
@@ -125,13 +186,25 @@ function formatTime(time) {
 
 function changeDay(n) {
   show.value = false
-  const newDate = new Date(startDate.value)
-  newDate.setDate(newDate.getDate() + n)
-  startDate.value = newDate
-  key.value += 1
-  show.value = true
-}
 
+  if (filterMode.value && props.filter && props.filter.length > 0) {
+    // No modo filtro, navegar entre as datas filtradas
+    const newIndex = filterIndex.value + n
+    if (newIndex >= 0 && newIndex <= Math.max(0, props.filter.length - 1)) {
+      filterIndex.value = newIndex
+    }
+  } else {
+    // No modo normal, navegar pela semana
+    const newDate = new Date(startDate.value)
+    newDate.setDate(newDate.getDate() + n)
+    startDate.value = newDate
+  }
+
+  key.value += 1
+  setTimeout(() => {
+    show.value = true
+  }, 10)
+}
 function istoday(date) {
   return date.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR')
 }
@@ -140,7 +213,9 @@ function changeSpace(space) {
   show.value = false
   currentSpace.value = space
   key.value += 1
-  show.value = true
+  setTimeout(() => {
+    show.value = true
+  }, 10)
 }
 
 function dayToString(date_obj) {
@@ -170,9 +245,37 @@ function exitPaintMode() {
   showColorPicker.value = false;
 }
 
+// Métodos para lidar com eventos do componente de filtro
+function handleFilterApply(filteredDates) {
+  if (filteredDates && filteredDates.length > 0) {
+    filterMode.value = true
+    filterIndex.value = 0
+    refreshCalendar()
+  }
+}
+
+function handleFilterClear() {
+  filterMode.value = false
+  startDate.value = new Date()
+  refreshCalendar()
+}
+
+
+watch(
+  () => props.selectedDate,
+  (newDate) => {
+    console.log(newDate)
+    appliedPicker.value = false
+    selectedDate.value = newDate
+    changeDay(0)
+  }
+)
+
 defineExpose({
   changeDay,
   changeSpace,
+  handleFilterApply,
+  handleFilterClear
 })
 </script>
 
@@ -313,24 +416,33 @@ defineExpose({
 }
 
 .horarios {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: repeat(34, 1fr);
+  grid-auto-rows: 1fr;
+  min-height: 100%;
   width: 60px;
-  flex-shrink: 0;
+  padding-right: 8px;
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+  line-height: 1;
 }
 
-.horarios p {
+.horarios div {
   display: flex;
   align-items: center;
-  justify-content: center;
   width: 60px;
   padding: 0;
   margin: 0;
-  min-height: calc(0.5em * 2 + 20px);
-  font-size: 1rem;
+  font-size: 0.75rem;
   color: black;
   white-space: nowrap;
+  justify-content: center;
+  height: calc(0.5em * 2 + 21px);
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
 }
+
 
 .days-container {
   display: flex;
@@ -360,5 +472,37 @@ defineExpose({
 
 .next-btn {
   right: 1%;
+}
+
+/* Indicador de filtro ativo */
+.filter-indicator {
+  position: absolute;
+  top: 1.5%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+}
+
+.filter-indicator i {
+  font-size: 14px;
+  color: #dc3545;
+}
+
+.days-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  width: 100%;
+}
+
+.days-container>* {
+  height: 100%;
 }
 </style>
