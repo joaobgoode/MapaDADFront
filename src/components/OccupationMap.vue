@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="js">
-import { defineProps, onMounted, ref, watch, computed, provide } from 'vue'
+import { defineProps, onMounted, onBeforeUnmount, ref, watch, computed, provide } from 'vue'
 import { store } from '../store/store.js'
 import DaySlot from './DaySlot.vue'
 import ColorPicker from './ColorPicker.vue'
@@ -70,6 +70,7 @@ onMounted(() => {
   if (props.filter && props.filter.length > 0) {
     filterMode.value = true
   }
+  window.addEventListener('keydown', handleKey)
 })
 
 const filterIndex = ref(0)
@@ -246,6 +247,17 @@ function clickDay(event) {
   }
 }
 
+function handleKey(event) {
+  if (event.key === 'ArrowLeft') {
+    changeDay(-7)  // Chamada direta da função, sem usar 'this'
+  } else if (event.key === 'ArrowRight') {
+    changeDay(7)   // Chamada direta da função, sem usar 'this'
+  }
+}
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKey)
+})
 
 defineExpose({
   changeDay,
