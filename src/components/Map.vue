@@ -3,6 +3,7 @@ import OccupationMap from './OccupationMap.vue'
 import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { store } from '../store/store.js'
+import FilterCalendar from './FilterCalendar.vue'
 
 const router = useRouter()
 const options = ref(['Quadra 1', 'Quadra 2', 'Quadra 3', "Sala 1", "Sala 2"])
