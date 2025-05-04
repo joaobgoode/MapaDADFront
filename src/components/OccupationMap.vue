@@ -15,7 +15,7 @@
     <!-- Conteúdo principal -->
     <div class="content">
       <div class="day-headers">
-        <div v-for="(day, index) in days" :key="`header-${index}`" class="day-header">
+        <div v-for="(day, index) in days" :key="`header-${index}`" class="day-header" :data-day="day" @click="clickDay">
           <p class="date" :class="istoday(day) ? 'today' : ''">{{ dayToString(day) }}</p>
           <p class="weekday">{{ getWeekDay(day) }}</p>
         </div>
@@ -224,8 +224,29 @@ function clickRow(event) {
   }
   for (let day of days.value) {
     store.selectTextarea(currentSpace.value, day, time)
+    console.log(day)
   }
 }
+
+
+function clickDay(event) {
+  if (paintMode.value) {
+    return
+  }
+  const selected_day = event.currentTarget.dataset.day
+  const day = new Date(selected_day)
+  console.log(day)
+  if (event.ctrlKey) {
+    for (let time of timeSlots) {
+      store.selectTextarea(currentSpace.value, day, time, false)
+    }
+    return
+  }
+  for (let time of timeSlots) {
+    store.selectTextarea(currentSpace.value, day, time)
+  }
+}
+
 
 defineExpose({
   changeDay,
