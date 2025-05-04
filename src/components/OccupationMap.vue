@@ -1,20 +1,8 @@
 <template>
   <div class="calendar-container">
-    <!-- Color Picker Dropdown -->
-    <div class="color-picker-dropdown" :style="{ top: '1.5%', left: '-1%' }" ref="colorPickerRef">
-      <button class="color-picker-btn" :class="paintMode ? 'bg-primary' : 'bg-light'" @click.stop="toggleColorPicker">
-        <div class="color-preview" :style="{ backgroundColor: selectedColor }"></div>
-        <i class="bi bi-chevron-down"></i>
-      </button>
-      <div class="color-options" v-if="showColorPicker" @click.stop>
-        <div v-for="(color, name) in colorOptions" :key="name" class="color-option" :style="{ backgroundColor: color }"
-          @click.stop="selectColor(color, name)" :title="name">
-        </div>
-        <div class="color-option exit-option" @click.stop="exitPaintMode" title="Sair do modo pintura">
-          <i class="bi bi-x-circle"></i>
-        </div>
-      </div>
-    </div>
+    <!-- Color Picker Component -->
+    <ColorPicker :style="{ top: '1.5%', left: '-1%' }" v-model="paintMode" v-model:selectedColor="selectedColor"
+      v-model:selectedColorName="selectedColorName" :initialColor="selectedColor" />
 
     <!-- Navegação -->
     <button class="ui-button prev-btn" @click="changeDay(-7)">
@@ -23,7 +11,6 @@
     <button class="ui-button next-btn" @click="changeDay(7)">
       <i class="bi bi-caret-right-square"></i>
     </button>
-
 
     <!-- Conteúdo principal -->
     <div class="content">
@@ -52,6 +39,7 @@
 import { defineProps, onMounted, onUnmounted, ref, reactive, watch, computed, provide } from 'vue'
 import { store } from '../store/store.js'
 import DaySlot from './DaySlot.vue'
+import ColorPicker from './ColorPicker.vue'
 
 const props = defineProps({
   space: String,
@@ -69,7 +57,6 @@ const key = ref(0)
 const filterMode = ref(false)
 
 // Color picker variables
-const showColorPicker = ref(false)
 const selectedColor = ref('#FFFFFF')
 const selectedColorName = ref('Branco')
 const paintMode = ref(false)
@@ -78,39 +65,12 @@ const selectedDate = ref(props.selectedDate)
 provide('selectedColor', selectedColor)
 provide('paintMode', paintMode)
 
-// Event listener para fechar o dropdown ao clicar fora
+// Se houver um filtro inicial, ative o modo de filtro
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-
-  // Se houver um filtro inicial, ative o modo de filtro
   if (props.filter && props.filter.length > 0) {
     filterMode.value = true
   }
 })
-
-// Remover listener ao desmontar o componente
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
-
-const colorPickerRef = ref(null)
-
-function handleClickOutside(event) {
-  if (colorPickerRef.value && !colorPickerRef.value.contains(event.target)) {
-    showColorPicker.value = false
-  }
-}
-
-const colorOptions = {
-  'Branco': '#FFFFFF',
-  'Verde': '#4CAF50',
-  'Vermelho': '#F44336',
-  'Azul': '#2196F3',
-  'Amarelo': '#FFEB3B',
-  'Roxo': '#9C27B0',
-  'Cyan': '#00BCD4',
-  'Magenta': '#E91E63'
-}
 
 const filterIndex = ref(0)
 const appliedPicker = ref(true)
@@ -160,8 +120,6 @@ watch(() => props.filter, (newFilter) => {
   }
 }, { deep: true })
 
-
-
 // Função para atualizar o calendário
 function refreshCalendar() {
   show.value = false
@@ -205,6 +163,7 @@ function changeDay(n) {
     show.value = true
   }, 10)
 }
+
 function istoday(date) {
   return date.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR')
 }
@@ -227,24 +186,6 @@ function getWeekDay(date_obj) {
   return weekDays[date_obj.getDay()];
 }
 
-// Color picker functions
-function toggleColorPicker(event) {
-  event.stopPropagation();
-  showColorPicker.value = !showColorPicker.value;
-}
-
-function selectColor(color, name) {
-  selectedColor.value = color;
-  selectedColorName.value = name;
-  paintMode.value = true;
-  showColorPicker.value = false;
-}
-
-function exitPaintMode() {
-  paintMode.value = false;
-  showColorPicker.value = false;
-}
-
 // Métodos para lidar com eventos do componente de filtro
 function handleFilterApply(filteredDates) {
   if (filteredDates && filteredDates.length > 0) {
@@ -259,7 +200,6 @@ function handleFilterClear() {
   startDate.value = new Date()
   refreshCalendar()
 }
-
 
 watch(
   () => props.selectedDate,
@@ -284,77 +224,6 @@ defineExpose({
   position: relative;
   width: 100%;
   height: 100%;
-}
-
-.color-picker-dropdown {
-  position: absolute;
-  z-index: 1001;
-}
-
-.color-picker-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.color-picker-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.color-preview {
-  width: 24px;
-  height: 24px;
-  border: 1px solid #aaa;
-  border-radius: 3px;
-}
-
-.color-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  padding: 8px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 1002;
-}
-
-.color-option {
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  border-radius: 50%;
-  border: 1px solid #ddd;
-}
-
-.color-option:hover {
-  transform: scale(1.1);
-  transition: transform 0.2s ease;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-}
-
-.exit-option {
-  background-color: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  grid-column: span 4;
-  width: 100%;
-  height: 30px;
-  border-radius: 15px;
-  margin-top: 4px;
-  border-top: 1px solid #eee;
-  padding-top: 4px;
 }
 
 .content {
@@ -442,7 +311,6 @@ defineExpose({
   border-top: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
 }
-
 
 .days-container {
   display: flex;
