@@ -22,7 +22,7 @@
       </div>
       <div class="map-content">
         <div class="horarios">
-          <div v-for="time in timeSlots" :key="`time-${time}`">
+          <div v-for="time in timeSlots" :key="`time-${time}`" :data-time="time" @click="clickRow">
             {{ formatTime(time) }}
           </div>
         </div>
@@ -210,6 +210,22 @@ watch(
     changeDay(0)
   }
 )
+
+function clickRow(event) {
+  if (paintMode.value) {
+    return
+  }
+  const time = event.target.dataset.time
+  if (event.ctrlKey) {
+    for (let day of days.value) {
+      store.selectTextarea(currentSpace.value, day, time, false)
+    }
+    return
+  }
+  for (let day of days.value) {
+    store.selectTextarea(currentSpace.value, day, time)
+  }
+}
 
 defineExpose({
   changeDay,
