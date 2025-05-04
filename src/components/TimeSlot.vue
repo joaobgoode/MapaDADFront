@@ -75,11 +75,12 @@ function handleClick() {
     return
   }
 
+
+  const newSelected = !textareaState.selected
+
   if (!event.ctrlKey) {
     store.unselectAll()
   }
-
-  const newSelected = !textareaState.selected
 
   store.selectTextarea(props.space, props.day, props.time, newSelected)
 
