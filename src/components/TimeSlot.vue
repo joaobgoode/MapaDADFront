@@ -93,6 +93,10 @@ function handleClick() {
 
 function handleDoubleClick() {
 
+  if (paintMode.value) {
+    return
+  }
+
   store.exitEditModeAll()
 
   store.setEditingMode(props.space, props.day, props.time, true)
@@ -134,13 +138,6 @@ function handleKeyDown(event) {
   }
 }
 
-function getColor() {
-  if (textareaState.selected) {
-    return "#ccccff";
-  } else {
-    return color.value
-  }
-}
 
 async function saveColor() {
   const path = "http://localhost:3000/api/horarios/color"
@@ -161,8 +158,13 @@ async function saveColor() {
 </script>
 
 <template>
-  <div class="textarea-wrapper" @click="handleClick" @dblclick="handleDoubleClick"
-    :style="{ backgroundColor: getColor() }">
+
+  <div class="textarea-wrapper" :class="{
+    editing: textareaState.editing,
+    selectedOnly: !textareaState.editing && textareaState.selected
+  }" :style="!textareaState.editing && !textareaState.selected ? { backgroundColor: color } : {}" @click="handleClick"
+    @dblclick="handleDoubleClick">
+
     <div v-if="!textareaState.editing" class="textarea-content">
       {{ textareaState.text }}
     </div>
@@ -181,20 +183,22 @@ async function saveColor() {
   transition: all 0.2s ease;
   height: calc(0.5em * 2 + 20px);
   min-height: calc(0.5em * 2 + 20px);
+  max-height: calc(0.5em * 2 + 20px);
   color: black;
   width: 100%;
   text-align: center;
   border-top: 1px solid #ccc;
-}
-
-.textarea-wrapper.selected {
-  border: 2px solid #a9ccf5;
-  background-color: #ccccff;
+  border-bottom: 1px solid #ccc;
 }
 
 .textarea-wrapper.editing {
-  border-color: #42b983;
-  box-shadow: 0 0 0 2px rgba(66, 185, 131, 0.3);
+  background-color: transparent;
+  border: 1px solid green;
+}
+
+.textarea-wrapper.selectedOnly {
+  background-color: #8c9af5;
+  border: 1px solid #1736ff;
 }
 
 .textarea-content {
