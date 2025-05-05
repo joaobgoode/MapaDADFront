@@ -207,6 +207,7 @@ async function saveColor() {
   display: flex;
   justify-content: center;
   align-items: center;
+  font-weight: bold;
 }
 
 .textarea-edit {
