@@ -248,10 +248,17 @@ function clickDay(event) {
 }
 
 function handleKey(event) {
-  if (event.key === 'ArrowLeft') {
-    changeDay(-7)  // Chamada direta da função, sem usar 'this'
-  } else if (event.key === 'ArrowRight') {
-    changeDay(7)   // Chamada direta da função, sem usar 'this'
+  const activeElement = document.activeElement;
+  const isEditableElement =
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.isContentEditable;
+  if (!isEditableElement) {
+    if (event.key === 'ArrowLeft') {
+      changeDay(-7)
+    } else if (event.key === 'ArrowRight') {
+      changeDay(7)
+    }
   }
 }
 
