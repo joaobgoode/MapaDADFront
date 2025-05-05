@@ -1,10 +1,8 @@
 <template>
   <div class="calendar-container">
-    <!-- Color Picker Component -->
     <ColorPicker :style="{ top: '1.5%', left: '-1%' }" v-model="paintMode" v-model:selectedColor="selectedColor"
       v-model:selectedColorName="selectedColorName" :initialColor="selectedColor" />
 
-    <!-- Navegação -->
     <button class="ui-button prev-btn" @click="changeDay(-7)">
       <i class="bi bi-caret-left-square"></i>
     </button>
@@ -12,7 +10,6 @@
       <i class="bi bi-caret-right-square"></i>
     </button>
 
-    <!-- Conteúdo principal -->
     <div class="content">
       <div class="day-headers">
         <div v-for="(day, index) in days" :key="`header-${index}`" class="day-header" :data-day="day" @click="clickDay">
@@ -41,6 +38,8 @@ import { store } from '../store/store.js'
 import DaySlot from './DaySlot.vue'
 import ColorPicker from './ColorPicker.vue'
 
+//====    Props    ====//
+
 const props = defineProps({
   space: String,
   filter: {
@@ -50,13 +49,14 @@ const props = defineProps({
   selectedDate: Date,
 })
 
+//====    State Variables    ====//
+
 const currentSpace = ref(props.space)
 const startDate = ref(new Date())
 const show = ref(true)
 const key = ref(0)
 const filterMode = ref(false)
 
-// Color picker variables
 const selectedColor = ref('#FFFFFF')
 const selectedColorName = ref('Branco')
 const paintMode = ref(false)
@@ -65,7 +65,18 @@ const selectedDate = ref(props.selectedDate)
 provide('selectedColor', selectedColor)
 provide('paintMode', paintMode)
 
-// Se houver um filtro inicial, ative o modo de filtro
+const filterIndex = ref(0)
+const appliedPicker = ref(true)
+
+const timeSlots = [
+  600, 630, 700, 730, 800, 830, 900, 930, 1000, 1030,
+  1100, 1130, 1200, 1230, 1300, 1330, 1400, 1430, 1500, 1530,
+  1600, 1630, 1700, 1730, 1800, 1830, 1900, 1930, 2000, 2030,
+  2100, 2130, 2200, 2230
+]
+
+//====    Mount / UnMount    ====//
+
 onMounted(() => {
   if (props.filter && props.filter.length > 0) {
     filterMode.value = true
@@ -73,25 +84,26 @@ onMounted(() => {
   window.addEventListener('keydown', handleKey)
 })
 
-const filterIndex = ref(0)
-const appliedPicker = ref(true)
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKey)
+})
+
+
+//==== Date Calculation ====//
+
 const days = computed(() => {
   const result = []
-  // Verificar se estamos no modo filtro e se o array de filtro tem elementos
   if (filterMode.value && props.filter && props.filter.length > 0) {
     console.log("Usando filtro de datas:", props.filter)
 
-    // Se não temos datas suficientes para mostrar, usamos apenas as disponíveis
     const maxIndex = Math.min(7, props.filter.length - filterIndex.value)
 
-    // Usar apenas as datas do filtro
     for (let i = 0; i < maxIndex; i++) {
       result.push(props.filter[i + filterIndex.value])
     }
     return result
   }
 
-  // Modo normal: mostrar semana a partir da data inicial
   let baseDate = new Date(startDate.value)
   if (!appliedPicker.value) {
     baseDate = selectedDate.value || new Date()
@@ -105,23 +117,35 @@ const days = computed(() => {
   return result
 })
 
-// Observar mudanças no filtro para atualizar o calendário
+//====    Filter    ====//
+
 watch(() => props.filter, (newFilter) => {
   if (newFilter && newFilter.length > 0) {
-    // Ativar o modo filtro quando o filtro for aplicado
     filterMode.value = true
-    filterIndex.value = 0  // Resetar para mostrar a partir do início do filtro
+    filterIndex.value = 0
     refreshCalendar()
   } else {
-    // Desativar o modo filtro quando o filtro for limpo
     filterMode.value = false
-    // Voltar para a data atual
     startDate.value = new Date()
     refreshCalendar()
   }
 }, { deep: true })
 
-// Função para atualizar o calendário
+function handleFilterApply(filteredDates) {
+  if (filteredDates && filteredDates.length > 0) {
+    filterMode.value = true
+    filterIndex.value = 0
+    refreshCalendar()
+  }
+}
+
+function handleFilterClear() {
+  filterMode.value = false
+  startDate.value = new Date()
+  refreshCalendar()
+}
+
+//====    Refresh Calendar    ====//
 function refreshCalendar() {
   show.value = false
   key.value += 1
@@ -130,12 +154,7 @@ function refreshCalendar() {
   }, 10)
 }
 
-const timeSlots = [
-  600, 630, 700, 730, 800, 830, 900, 930, 1000, 1030,
-  1100, 1130, 1200, 1230, 1300, 1330, 1400, 1430, 1500, 1530,
-  1600, 1630, 1700, 1730, 1800, 1830, 1900, 1930, 2000, 2030,
-  2100, 2130, 2200, 2230
-]
+//====    Display Functions    ====//
 
 function formatTime(time) {
   const hour = Math.floor(time / 100)
@@ -169,15 +188,6 @@ function istoday(date) {
   return date.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR')
 }
 
-function changeSpace(space) {
-  show.value = false
-  currentSpace.value = space
-  key.value += 1
-  setTimeout(() => {
-    show.value = true
-  }, 10)
-}
-
 function dayToString(date_obj) {
   return date_obj.toLocaleDateString('pt-BR').padStart(10, '0');
 }
@@ -187,20 +197,18 @@ function getWeekDay(date_obj) {
   return weekDays[date_obj.getDay()];
 }
 
-// Métodos para lidar com eventos do componente de filtro
-function handleFilterApply(filteredDates) {
-  if (filteredDates && filteredDates.length > 0) {
-    filterMode.value = true
-    filterIndex.value = 0
-    refreshCalendar()
-  }
+//====    Space Change    ====//
+
+function changeSpace(space) {
+  show.value = false
+  currentSpace.value = space
+  key.value += 1
+  setTimeout(() => {
+    show.value = true
+  }, 10)
 }
 
-function handleFilterClear() {
-  filterMode.value = false
-  startDate.value = new Date()
-  refreshCalendar()
-}
+//====    Date Picker    ====//
 
 watch(
   () => props.selectedDate,
@@ -211,6 +219,9 @@ watch(
     changeDay(0)
   }
 )
+
+//====    Select Row/Collumn    ====//
+
 
 function clickRow(event) {
   if (paintMode.value) {
@@ -229,7 +240,6 @@ function clickRow(event) {
   }
 }
 
-
 function clickDay(event) {
   if (paintMode.value) {
     return
@@ -247,6 +257,8 @@ function clickDay(event) {
   }
 }
 
+//====    Change Day with Arrow Keys    ====//
+
 function handleKey(event) {
   const activeElement = document.activeElement;
   const isEditableElement =
@@ -262,9 +274,7 @@ function handleKey(event) {
   }
 }
 
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKey)
-})
+//====    Expose Methods    ====//
 
 defineExpose({
   changeDay,
@@ -272,6 +282,7 @@ defineExpose({
   handleFilterApply,
   handleFilterClear
 })
+
 </script>
 
 <style scoped lang="css">

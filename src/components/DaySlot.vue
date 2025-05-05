@@ -15,15 +15,18 @@
 </template>
 
 <script setup>
-import { defineProps, onBeforeMount, ref, reactive, watch } from 'vue'
-import { store } from '../store/store.js'
+import { defineProps, onBeforeMount, ref, watch } from 'vue'
 import TimeSlot from './TimeSlot.vue'
 import axios from 'axios'
+
+//====    Props    ====//
 
 const props = defineProps({
   day: Date,
   space: String,
 })
+
+//====    State Variables    ====//
 
 const processedData = ref({})
 const processedDataColor = ref({})
@@ -32,7 +35,6 @@ const error = ref(null)
 const day = ref(props.day)
 const displayDate = ref(dayToString(props.day))
 
-// Array de todos os horários possíveis de 30 em 30 minutos
 const timeSlots = [
   600, 630, 700, 730, 800, 830, 900, 930, 1000, 1030,
   1100, 1130, 1200, 1230, 1300, 1330, 1400, 1430, 1500, 1530,
@@ -40,9 +42,13 @@ const timeSlots = [
   2100, 2130, 2200, 2230
 ]
 
-function dayToString(date_obj) {
-  return date_obj.toLocaleDateString('pt-BR').padStart(10, '0')
-}
+//====    Mount/UnMount    ====//
+
+onBeforeMount(() => {
+  fetchTimeSlotData()
+})
+
+//====    Initial State    ====//
 
 function getInitialText(time) {
   return processedData.value[time] || ''
@@ -52,11 +58,11 @@ function getInitialColor(time) {
   return processedDataColor.value[time] || 'white'
 }
 
-
+//====    State Management    ====//
 
 watch(day, () => {
   displayDate.value = dayToString(day.value)
-  fetchTimeSlotData() // Refetch data when day changes
+  fetchTimeSlotData()
 })
 
 async function fetchTimeSlotData() {
@@ -74,7 +80,6 @@ async function fetchTimeSlotData() {
       }
     })
 
-    // Process the array into an object with time keys
     const data = {}
     const colors = {}
 
@@ -89,10 +94,8 @@ async function fetchTimeSlotData() {
       })
     }
 
-    // Store processed data
     processedData.value = data
     processedDataColor.value = colors
-    console.log('Processed data:', day, processedData.value)
   } catch (err) {
     console.error('Error fetching time slot data:', err)
     error.value = 'Falha ao carregar dados. Tente novamente mais tarde.'
@@ -101,9 +104,12 @@ async function fetchTimeSlotData() {
   }
 }
 
-onBeforeMount(() => {
-  fetchTimeSlotData()
-})
+//====    Date Formatting    ====//
+
+function dayToString(date_obj) {
+  return date_obj.toLocaleDateString('pt-BR').padStart(10, '0')
+}
+
 </script>
 
 <style scoped>

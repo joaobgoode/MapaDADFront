@@ -1,7 +1,6 @@
 <template>
   <div class="fullscreen-background">
     <div class="form-wrapper">
-      <!-- Coluna esquerda: formulário -->
       <div class="form-left">
         <form @submit.prevent="login" class="form-box">
           <h1 class="h3 mb-3 fw-normal">Entrar</h1>
@@ -19,7 +18,6 @@
         </form>
       </div>
 
-      <!-- Coluna direita: logo -->
       <div class="form-right">
         <img src="../assets/imagens/LOGO_UNIFOR_3_page-0001-removebg-preview.png" alt="Logo Unifor" class="logo-img" />
       </div>
@@ -80,7 +78,6 @@ function login() {
 
 .logo-img {
   width: 350px;
-  /* força uma largura */
   height: auto;
   object-fit: contain;
 }

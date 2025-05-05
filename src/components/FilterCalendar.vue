@@ -1,9 +1,7 @@
 <template>
   <div class="border rounded p-3 d-inline-block" style="max-width: fit-content;">
-    <!-- Calendário inline com v-model e key para controlar e resetar valor interno -->
     <v-date-picker :key="pickerKey" v-model="pickerValue" is-inline timezone="-03:00" :select-attribute="{}"
       :drag-attribute="{}" :attributes="attributes" @dayclick="onDayClick" />
-    <!-- Botões abaixo do calendário -->
     <div class="d-flex justify-content-end mt-3">
       <button class="btn btn-primary me-2" @click="applyDates">
         Aplicar
@@ -27,21 +25,16 @@ const props = defineProps({
 
 const emit = defineEmits(['update:filter', 'apply-dates', 'clear-dates'])
 
-// Contador de key para forçar re-render do DatePicker
 const pickerKey = ref(0)
-// Controla o valor interno do DatePicker
 const pickerValue = ref(null)
-// Datas selecionadas como objetos Date
 const selectedDates = ref([])
 
-// Inicializar selectedDates com props.filter se existir
 watch(() => props.filter, (newFilter) => {
   if (newFilter && newFilter.length > 0) {
     selectedDates.value = [...newFilter]
   }
 }, { immediate: true, deep: true })
 
-// Atributos para highlight do calendário
 const attributes = computed(() => {
   if (selectedDates.value.length === 0) {
     return []
@@ -55,7 +48,6 @@ const attributes = computed(() => {
   ]
 })
 
-// Handler de clique de dia
 function onDayClick({ year, month, day }) {
   const clicked = new Date(year, month - 1, day)
   const idx = selectedDates.value.findIndex(
@@ -66,36 +58,27 @@ function onDayClick({ year, month, day }) {
   } else {
     selectedDates.value.push(clicked)
   }
-  // Reseta o valor interno do picker para evitar seleção única
   pickerValue.value = null
 }
 
-// Aplica as datas selecionadas
 function applyDates() {
-  // Ordena as datas selecionadas antes de emitir
   const sortedDates = [...selectedDates.value].sort((a, b) => a - b)
 
-  // Emite evento para atualizar o filter
   emit('update:filter', sortedDates)
 
-  // Emite evento para o componente pai
   emit('apply-dates', sortedDates)
 }
 
-// Limpa todas as datas selecionadas
 function clearDates() {
   selectedDates.value = []
   pickerValue.value = null
 
-  // Incrementa key para resetar o componente
   pickerKey.value++
 
-  // Emite eventos para atualizar o componente pai
   emit('update:filter', [])
   emit('clear-dates')
 }
 
-// Expõe funções para o componente pai
 defineExpose({
   clearDates,
   applyDates,
@@ -103,6 +86,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-/* Estilos mantidos do componente original */
-</style>
+<style scoped></style>

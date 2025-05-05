@@ -1,8 +1,6 @@
 <template>
   <div class="border rounded p-3 d-inline-block" style="max-width: fit-content;">
-    <!-- Calendário inline com v-model e key para controlar e resetar valor interno -->
     <VDatePicker v-model="date" mode="date" />
-    <!-- Botões abaixo do calendário -->
     <div class="d-flex justify-content-end mt-3">
       <button class="btn btn-primary me-2" @click="applyDate">
         Aplicar

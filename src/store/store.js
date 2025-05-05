@@ -7,13 +7,6 @@ export const store = {
   editingText: ref(''),
 
   currentSpace: ref(''),
-  currentSlot1: ref(new Date()),
-  currentSlot2: ref(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)),
-  currentSlot3: ref(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)),
-  currentSlot4: ref(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)),
-  currentSlot5: ref(new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)),
-  currentSlot6: ref(new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)),
-  currentSlot7: ref(new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)),
 
   debug() {
     console.log('=== ESTADO ATUAL DA STORE ===')
@@ -38,7 +31,7 @@ export const store = {
 
   registerTextarea(space, day, time, textareaState) {
     const key = this.createKey(space, day, time)
-    console.log(`Registrando textarea com chave [${key}]`)
+    //console.log(`Registrando textarea com chave [${key}]`)
 
     if (!this.textareaMap[key]) {
       this.textareaMap[key] = textareaState

@@ -1,8 +1,10 @@
 <script setup>
-import { reactive, onMounted, computed, watch } from 'vue'
+import { reactive, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { store } from '../store/store.js'
 import { inject, ref } from 'vue'
 import axios from 'axios'
+
+//=====    Props   ====//
 
 const props = defineProps({
   initialText: {
@@ -17,6 +19,8 @@ const props = defineProps({
     default: '#FFFFFF'
   }
 })
+
+//=====    State Variables   ====//
 
 const getKey = () => store.createKey(props.space, props.day, props.time)
 const paintMode = inject('paintMode')
@@ -38,6 +42,24 @@ const editingText = computed({
   set: (val) => { store.editingText.value = val }
 })
 
+//=====    Mount / UnMount   ====//
+
+onMounted(() => {
+
+  store.registerTextarea(props.space, props.day, props.time, textareaState)
+
+})
+
+onBeforeUnmount(() => {
+  if (!textareaState.selected) {
+    store.unregisterTextarea(props.space, props.day, props.time)
+  }
+})
+
+
+//====    State Management   ====//
+
+
 watch(
   () => {
     const key = getKey()
@@ -53,11 +75,40 @@ watch(
   { deep: true }
 )
 
-onMounted(() => {
+function saveChanges() {
+  if (textareaState.editing) {
 
-  store.registerTextarea(props.space, props.day, props.time, textareaState)
+    const newText = editingText.value
 
-})
+    store.applyTextToSelected(newText)
+
+    store.setEditingMode(props.space, props.day, props.time, false)
+
+    store.unselectAll()
+
+  }
+}
+
+async function saveColor() {
+  const path = "http://localhost:3000/api/horarios/color"
+  const requestBody = {
+    date: textareaState.date,
+    hour: textareaState.hour,
+    space: textareaState.space,
+    color: color.value
+  }
+  const response = await axios.put(path, requestBody)
+  if (response.status === 200) {
+    console.log("Color saved successfully")
+  } else {
+    console.error("Failed to save color", response)
+  }
+}
+
+
+//=====    Funcionalities   ====//
+
+//=====    Click   ====//
 
 function handleClick() {
 
@@ -87,6 +138,9 @@ function handleClick() {
 
 }
 
+
+//=====    Double Click   ====//
+
 function handleDoubleClick() {
 
   if (paintMode.value) {
@@ -107,19 +161,7 @@ function handleDoubleClick() {
   }, 10)
 }
 
-function saveChanges() {
-  if (textareaState.editing) {
-
-    const newText = editingText.value
-
-    store.applyTextToSelected(newText)
-
-    store.setEditingMode(props.space, props.day, props.time, false)
-
-    store.unselectAll()
-
-  }
-}
+//=====      Edit     ====//
 
 function handleKeyDown(event) {
   if (textareaState.editing) {
@@ -135,22 +177,6 @@ function handleKeyDown(event) {
 }
 
 
-async function saveColor() {
-  const path = "http://localhost:3000/api/horarios/color"
-  const requestBody = {
-    date: textareaState.date,
-    hour: textareaState.hour,
-    space: textareaState.space,
-    color: color.value
-  }
-  const response = await axios.put(path, requestBody)
-  if (response.status === 200) {
-    console.log("Color saved successfully")
-  } else {
-    console.error("Failed to save color", response)
-  }
-}
-
 
 </script>
 
@@ -159,8 +185,7 @@ async function saveColor() {
   <div class="textarea-wrapper" :class="{
     editing: textareaState.editing,
     selectedOnly: !textareaState.editing && textareaState.selected
-  }" :style="!textareaState.editing && !textareaState.selected ? { backgroundColor: color } : {}" @click="handleClick"
-    @dblclick="handleDoubleClick">
+  }" :style="{ backgroundColor: color }" @click="handleClick" @dblclick="handleDoubleClick">
 
     <div v-if="!textareaState.editing" class="textarea-content">
       {{ textareaState.text }}
@@ -194,7 +219,7 @@ async function saveColor() {
 }
 
 .textarea-wrapper.selectedOnly {
-  background-color: #8c9af5;
+  border: 3px solid #1736ff;
   box-shadow: 0 0 5px #1736ff;
 }
 

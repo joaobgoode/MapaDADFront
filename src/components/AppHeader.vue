@@ -55,9 +55,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, defineProps, defineEmits, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { store } from '../store/store.js'
+import { ref, onMounted, onUnmounted, defineProps, defineEmits, computed } from 'vue'
 import FilterCalendar from './FilterCalendar.vue'
 import DatePicker from './DatePicker.vue'
 
@@ -90,7 +88,6 @@ const emit = defineEmits([
   'space-change'
 ]);
 
-const router = useRouter();
 const selectedOption = computed({
   get: () => props.modelValue || props.options[0],
   set: (value) => emit('update:modelValue', value)

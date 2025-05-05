@@ -47,12 +47,10 @@ const colorOptions = {
   'Magenta': '#E91E63'
 };
 
-// Event listener para fechar o dropdown ao clicar fora
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
 });
 
-// Remover listener ao desmontar o componente
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
 });
