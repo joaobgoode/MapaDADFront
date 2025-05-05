@@ -28,6 +28,7 @@ const textareaState = reactive({
   date: props.day.toISOString().split('T')[0],
   hour: props.time,
   space: props.space,
+  color: color,
   selected: false,
   editing: false
 })
@@ -149,6 +150,7 @@ async function saveColor() {
     console.error("Failed to save color", response)
   }
 }
+
 
 </script>
 
