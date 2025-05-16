@@ -1,6 +1,6 @@
 <template>
   <div class="color-picker-dropdown" ref="colorPickerRef">
-    <button class="color-picker-btn" :class="modelValue ? 'bg-primary' : 'bg-light'" @click.stop="toggleColorPicker">
+    <button class="color-picker-btn" :class="modelValue ? 'bg-primary' : 'bg-white'" @click.stop="toggleColorPicker">
       <div class="color-preview" :style="{ backgroundColor: selectedColor }"></div>
       <i class="bi bi-chevron-down"></i>
     </button>

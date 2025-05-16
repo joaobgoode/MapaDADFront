@@ -8,6 +8,10 @@ export const store = {
 
   currentSpace: ref(''),
 
+  pickerDate: ref(new Date()),
+
+  appliedDate: ref(new Date()),
+
   debug() {
     console.log('=== ESTADO ATUAL DA STORE ===')
     console.log('textareaMap:', this.textareaMap)

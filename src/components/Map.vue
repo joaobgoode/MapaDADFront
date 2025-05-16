@@ -95,6 +95,7 @@ watch(() => filter.value, (newFilter) => {
       :selectedDate="selectedDate" />
   </div>
 </template>
+
 <style scoped>
 .map-content {
   position: absolute;

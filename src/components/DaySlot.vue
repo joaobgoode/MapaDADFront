@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { defineProps, onBeforeMount, ref, watch } from 'vue'
+import { onBeforeMount, ref, watch } from 'vue'
 import TimeSlot from './TimeSlot.vue'
 import axios from 'axios'
 

@@ -6,6 +6,7 @@
     <button class="ui-button prev-btn" @click="changeDay(-7)">
       <i class="bi bi-caret-left-square"></i>
     </button>
+
     <button class="ui-button next-btn" @click="changeDay(7)">
       <i class="bi bi-caret-right-square"></i>
     </button>
@@ -33,7 +34,7 @@
 </template>
 
 <script setup lang="js">
-import { defineProps, onMounted, onBeforeUnmount, ref, watch, computed, provide } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, computed, provide } from 'vue'
 import { store } from '../store/store.js'
 import DaySlot from './DaySlot.vue'
 import ColorPicker from './ColorPicker.vue'
@@ -60,7 +61,7 @@ const filterMode = ref(false)
 const selectedColor = ref('#FFFFFF')
 const selectedColorName = ref('Branco')
 const paintMode = ref(false)
-const selectedDate = ref(props.selectedDate)
+const appliedDate = ref(props.selectedDate)
 
 provide('selectedColor', selectedColor)
 provide('paintMode', paintMode)
@@ -106,8 +107,8 @@ const days = computed(() => {
 
   let baseDate = new Date(startDate.value)
   if (!appliedPicker.value) {
-    baseDate = selectedDate.value || new Date()
-    appliedPicker.value = false
+    baseDate = appliedDate.value || new Date()
+    appliedPicker.value = true
   }
   for (let i = 0; i < 7; i++) {
     const day = new Date(baseDate)
@@ -128,6 +129,7 @@ watch(() => props.filter, (newFilter) => {
     filterMode.value = false
     startDate.value = new Date()
     refreshCalendar()
+    console.log("Filtro limpo")
   }
 }, { deep: true })
 
@@ -146,6 +148,7 @@ function handleFilterClear() {
 }
 
 //====    Refresh Calendar    ====//
+
 function refreshCalendar() {
   show.value = false
   key.value += 1
@@ -209,14 +212,25 @@ function changeSpace(space) {
 }
 
 //====    Date Picker    ====//
+function getDaysBetween(date1, date2) {
+  const d1 = new Date(date1);
+  d1.setHours(0, 0, 0, 0);
+
+  const d2 = new Date(date2);
+  d2.setHours(0, 0, 0, 0);
+
+  return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+}
 
 watch(
-  () => props.selectedDate,
+  () => store.pickerDate.value,
   (newDate) => {
-    console.log(newDate)
-    appliedPicker.value = false
-    selectedDate.value = newDate
-    changeDay(0)
+    if (filterMode.value) {
+      return
+    }
+    const diff = getDaysBetween(appliedDate.value, newDate)
+    appliedDate.value = newDate
+    changeDay(diff)
   }
 )
 
@@ -321,6 +335,7 @@ defineExpose({
   text-align: center;
   margin: 0;
   padding: 0 5px;
+  border: 2px solid #f0f0f0;
 }
 
 .day-header .date {
@@ -334,6 +349,10 @@ defineExpose({
   padding: 0;
   font-size: 0.75rem;
   color: #666;
+}
+
+.day-header:hover {
+  border: 2px solid #3253fa;
 }
 
 .today {
@@ -378,6 +397,10 @@ defineExpose({
   border-bottom: 1px solid #ccc;
 }
 
+.horarios div:hover {
+  border: 2px solid #3253fa;
+}
+
 .days-container {
   display: flex;
   flex-grow: 1;
@@ -401,7 +424,7 @@ defineExpose({
 }
 
 .prev-btn {
-  left: 4%;
+  left: 5%;
 }
 
 .next-btn {

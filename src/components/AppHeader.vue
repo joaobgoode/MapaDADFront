@@ -4,7 +4,7 @@
     <div class="d-flex justify-content-between align-items-center px-3 w-100 h-100">
       <!-- Left Section -->
       <div class="d-flex align-items-center gap-3 h-100">
-        <img class="unifor-logo" src="../assets/imagens/unifor-online.png" alt="Logotipo da Unifor">
+        <img class="unifor-logo" src="../../unifor-online.png" alt="Logotipo da Unifor">
         <span class="fw-bold fs-5">Mapa de Ocupação</span>
 
         <div class="dropdown d-flex align-items-center">

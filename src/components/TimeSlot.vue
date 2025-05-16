@@ -213,6 +213,10 @@ function handleKeyDown(event) {
   border-bottom: 1px solid #ccc;
 }
 
+.textarea-wrapper:hover {
+  border: 2px solid #3253fa;
+}
+
 .textarea-wrapper.editing {
   border: 1px solid green;
   box-shadow: 0 0 5px green;

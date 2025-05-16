@@ -19,7 +19,7 @@
       </div>
 
       <div class="form-right">
-        <img src="../assets/imagens/LOGO_UNIFOR_3_page-0001-removebg-preview.png" alt="Logo Unifor" class="logo-img" />
+        <img src="../../LOGO_UNIFOR_3_page-0001-removebg-preview.png" alt="Logo Unifor" class="logo-img" />
       </div>
     </div>
   </div>
@@ -41,7 +41,7 @@ function login() {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('../assets/imagens/parque desportivo unifor 800 ares soares.png');
+  background-image: url('../../imagem-aeria.png');
   background-size: cover;
   background-position: center;
   display: flex;
