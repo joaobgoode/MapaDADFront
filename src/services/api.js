@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000';
+
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL,
   withCredentials: true,
 });
 
@@ -17,8 +19,8 @@ api.interceptors.request.use(
         let csrfToken = localStorage.getItem('csrfToken');
 
         if (!csrfToken) {
-          const response = await axios.get('http://localhost:3000/api/csrf-token', {
-            withCredentials: true
+          const response = await axios.get(`${baseURL}/api/csrf-token`, {
+            withCredentials: true,
           });
           csrfToken = response.data.csrfToken;
           localStorage.setItem('csrfToken', csrfToken);
@@ -32,19 +34,17 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    if (error.response && error.response.status === 403 &&
-      error.response.data.message &&
-      error.response.data.message.includes('CSRF')) {
+    if (
+      error.response &&
+      error.response.status === 403 &&
+      error.response.data.message?.includes('CSRF')
+    ) {
       localStorage.removeItem('csrfToken');
     }
     return Promise.reject(error);

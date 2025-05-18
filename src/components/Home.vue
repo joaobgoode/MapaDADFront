@@ -83,14 +83,13 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { ref, reactive } from 'vue'
-import axios from 'axios'
 import api from '../services/api'
+import { authLogin } from '../services/authService'
 
 const router = useRouter()
 const usuario = ref('')
 const senha = ref('')
 const erro = ref('')
-const _id = ref('')
 
 const showChangePasswordOverlay = ref(false)
 const passwordChangeForm = reactive({
@@ -133,10 +132,7 @@ async function login() {
   }
 
   try {
-    const res = await axios.post(import.meta.env.VITE_BASE_URL + "/login", {
-      usuario: usuario.value,
-      senha: senha.value,
-    })
+    const res = await authLogin(usuario.value, senha.value)
 
     if (res.data && res.data.token) {
       localStorage.setItem('token', res.data.token)
