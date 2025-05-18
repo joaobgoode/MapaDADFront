@@ -84,7 +84,6 @@ function exitPaintMode() {
 <style scoped>
 .color-picker-dropdown {
   position: absolute;
-  z-index: 1001;
 }
 
 .color-picker-btn {

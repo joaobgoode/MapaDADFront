@@ -19,7 +19,6 @@ const props = defineProps({
   selectedDate: Date,
 });
 
-// Mova esta linha para cima antes das funções que a utilizam
 const emit = defineEmits(['pickDate']);
 
 const date = ref(props.selectedDate || new Date());

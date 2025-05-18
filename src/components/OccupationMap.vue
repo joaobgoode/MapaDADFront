@@ -1,19 +1,11 @@
 <template>
   <div class="calendar-container">
-    <ColorPicker :style="{ top: '1.5%', left: '-1%' }" v-model="paintMode" v-model:selectedColor="selectedColor"
-      v-model:selectedColorName="selectedColorName" :initialColor="selectedColor" />
 
-    <button class="ui-button prev-btn" @click="changeDay(-7)">
-      <i class="bi bi-caret-left-square"></i>
-    </button>
-
-    <button class="ui-button next-btn" @click="changeDay(7)">
-      <i class="bi bi-caret-right-square"></i>
-    </button>
 
     <div class="content">
       <div class="day-headers">
-        <div v-for="(day, index) in days" :key="`header-${index}`" class="day-header" :data-day="day" @click="clickDay">
+        <div v-for="(day, index) in displayedDays" :key="`header-${index}`" class="day-header" :data-day="day"
+          @click="clickDay">
           <p class="date" :class="istoday(day) ? 'today' : ''">{{ dayToString(day) }}</p>
           <p class="weekday">{{ getWeekDay(day) }}</p>
         </div>
@@ -25,16 +17,26 @@
           </div>
         </div>
         <div class="days-container">
-          <DaySlot v-if="show" v-for="(day, index) in days" :key="`${currentSpace}-${key}-${index}`" :day="day"
+          <DaySlot v-if="show" v-for="(day, index) in displayedDays" :key="`${currentSpace}-${key}-${index}`" :day="day"
             :space="currentSpace" :paintColor="paintMode ? selectedColor : null" />
         </div>
       </div>
     </div>
+    <ColorPicker :style="{ top: '1.5%', left: '-1%' }" v-model="paintMode" v-model:selectedColor="selectedColor"
+      v-model:selectedColorName="selectedColorName" :initialColor="selectedColor" />
+
+    <button class="ui-button prev-btn" @click="changeDay(-visibleDays)">
+      <i class="bi bi-caret-left-square"></i>
+    </button>
+
+    <button class="ui-button next-btn" @click="changeDay(visibleDays)">
+      <i class="bi bi-caret-right-square"></i>
+    </button>
   </div>
 </template>
 
 <script setup lang="js">
-import { onMounted, onBeforeUnmount, ref, watch, computed, provide } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, computed, provide, onUnmounted } from 'vue'
 import { store } from '../store/store.js'
 import DaySlot from './DaySlot.vue'
 import ColorPicker from './ColorPicker.vue'
@@ -69,6 +71,10 @@ provide('paintMode', paintMode)
 const filterIndex = ref(0)
 const appliedPicker = ref(true)
 
+// Responsividade
+const visibleDays = ref(7)
+const windowWidth = ref(window.innerWidth)
+
 const timeSlots = [
   600, 630, 700, 730, 800, 830, 900, 930, 1000, 1030,
   1100, 1130, 1200, 1230, 1300, 1330, 1400, 1430, 1500, 1530,
@@ -83,12 +89,34 @@ onMounted(() => {
     filterMode.value = true
   }
   window.addEventListener('keydown', handleKey)
+  window.addEventListener('resize', handleResize)
+  handleResize()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKey)
+  window.removeEventListener('resize', handleResize)
 })
 
+//==== Responsividade ====//
+
+function handleResize() {
+  windowWidth.value = window.innerWidth
+
+  if (windowWidth.value < 480) {
+    visibleDays.value = 1
+  } else if (windowWidth.value < 768) {
+    visibleDays.value = 2
+  } else if (windowWidth.value < 992) {
+    visibleDays.value = 3
+  } else if (windowWidth.value < 1200) {
+    visibleDays.value = 5
+  } else {
+    visibleDays.value = 7
+  }
+
+  refreshCalendar()
+}
 
 //==== Date Calculation ====//
 
@@ -97,7 +125,7 @@ const days = computed(() => {
   if (filterMode.value && props.filter && props.filter.length > 0) {
     console.log("Usando filtro de datas:", props.filter)
 
-    const maxIndex = Math.min(7, props.filter.length - filterIndex.value)
+    const maxIndex = Math.min(visibleDays.value, props.filter.length - filterIndex.value)
 
     for (let i = 0; i < maxIndex; i++) {
       result.push(props.filter[i + filterIndex.value])
@@ -110,12 +138,16 @@ const days = computed(() => {
     baseDate = appliedDate.value || new Date()
     appliedPicker.value = true
   }
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < visibleDays.value; i++) {
     const day = new Date(baseDate)
     day.setDate(baseDate.getDate() + i)
     result.push(day)
   }
   return result
+})
+
+const displayedDays = computed(() => {
+  return days.value.slice(0, visibleDays.value)
 })
 
 //====    Filter    ====//
@@ -169,13 +201,11 @@ function changeDay(n) {
   show.value = false
 
   if (filterMode.value && props.filter && props.filter.length > 0) {
-    // No modo filtro, navegar entre as datas filtradas
     const newIndex = filterIndex.value + n
     if (newIndex >= 0 && newIndex <= Math.max(0, props.filter.length - 1)) {
       filterIndex.value = newIndex
     }
   } else {
-    // No modo normal, navegar pela semana
     const newDate = new Date(startDate.value)
     newDate.setDate(newDate.getDate() + n)
     startDate.value = newDate
@@ -243,12 +273,12 @@ function clickRow(event) {
   }
   const time = event.target.dataset.time
   if (event.ctrlKey) {
-    for (let day of days.value) {
+    for (let day of displayedDays.value) {
       store.selectTextarea(currentSpace.value, day, time, false)
     }
     return
   }
-  for (let day of days.value) {
+  for (let day of displayedDays.value) {
     store.selectTextarea(currentSpace.value, day, time)
     console.log(day)
   }
@@ -281,9 +311,9 @@ function handleKey(event) {
     activeElement.isContentEditable;
   if (!isEditableElement) {
     if (event.key === 'ArrowLeft') {
-      changeDay(-7)
+      changeDay(-visibleDays.value)
     } else if (event.key === 'ArrowRight') {
-      changeDay(7)
+      changeDay(visibleDays.value)
     }
   }
 }
@@ -316,7 +346,7 @@ defineExpose({
 
 .day-headers {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   width: calc(100% - 60px);
   background-color: #f0f0f0;
   padding: 10px;
@@ -325,6 +355,7 @@ defineExpose({
   margin-left: 60px;
   max-height: 10%;
   min-height: 10%;
+  position: relative;
 }
 
 .day-header {
@@ -402,9 +433,9 @@ defineExpose({
 }
 
 .days-container {
-  display: flex;
-  flex-grow: 1;
-  width: calc(100% - 60px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  width: 100%;
 }
 
 .ui-button {
@@ -412,8 +443,8 @@ defineExpose({
   border: none;
   cursor: pointer;
   position: absolute;
-  top: 0.5%;
-  z-index: 1000;
+  top: 5%;
+  transform: translateY(-50%);
   font-size: 2rem;
   color: #c8c8c8;
 }
@@ -424,14 +455,13 @@ defineExpose({
 }
 
 .prev-btn {
-  left: 5%;
+  left: 60px;
 }
 
 .next-btn {
-  right: 1%;
+  right: 0;
 }
 
-/* Indicador de filtro ativo */
 .filter-indicator {
   position: absolute;
   top: 1.5%;
@@ -453,13 +483,41 @@ defineExpose({
   color: #dc3545;
 }
 
-.days-container {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  width: 100%;
-}
-
 .days-container>* {
   height: 100%;
+}
+
+@media (max-width: 1200px) {
+  .day-header .weekday {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .day-header .date {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .day-header .weekday {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .day-headers {
+    width: calc(100% - 50px);
+    margin-left: 50px;
+  }
+
+  .horarios {
+    width: 50px;
+  }
+
+  .horarios div {
+    width: 50px;
+    font-size: 0.7rem;
+  }
 }
 </style>

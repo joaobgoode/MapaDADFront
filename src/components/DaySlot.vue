@@ -17,7 +17,7 @@
 <script setup>
 import { onBeforeMount, ref, watch } from 'vue'
 import TimeSlot from './TimeSlot.vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 //====    Props    ====//
 
@@ -73,7 +73,7 @@ async function fetchTimeSlotData() {
     const dateStr = day.value.toISOString().split('T')[0]
     const space = props.space
 
-    const response = await axios.get(`http://localhost:3000/api/horarios`, {
+    const response = await api.get(`/api/horarios`, {
       params: {
         date: dateStr,
         space: space

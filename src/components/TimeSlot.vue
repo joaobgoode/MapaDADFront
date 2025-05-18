@@ -2,7 +2,7 @@
 import { reactive, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import { store } from '../store/store.js'
 import { inject, ref } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 //=====    Props   ====//
 
@@ -90,14 +90,14 @@ function saveChanges() {
 }
 
 async function saveColor() {
-  const path = "http://localhost:3000/api/horarios/color"
+  const path = "/api/horarios/color"
   const requestBody = {
     date: textareaState.date,
     hour: textareaState.hour,
     space: textareaState.space,
     color: color.value
   }
-  const response = await axios.put(path, requestBody)
+  const response = await api.put(path, requestBody)
   if (response.status === 200) {
     console.log("Color saved successfully")
   } else {

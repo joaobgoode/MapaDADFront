@@ -1,5 +1,7 @@
 import { reactive, ref } from 'vue'
-import axios from 'axios';
+//useStore() vuex
+//pinia
+import api from '../services/api.js'
 
 export const store = {
   textareaMap: reactive({}),
@@ -115,8 +117,8 @@ export const store = {
   },
 
   sendToServer(textareas) {
-    const url = 'http://localhost:3000/api/horarios'
-    axios.put(url, textareas)
+    const url = '/api/horarios'
+    api.put(url, textareas)
       .then(response => {
         console.log('Dados enviados com sucesso:', response.data)
       })
@@ -155,11 +157,5 @@ export const store = {
     this.editingText.value = ''
 
     this.currentSpace.value = ''
-
-    const now = new Date()
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(now.getTime() + i * 24 * 60 * 60 * 1000)
-      this[`currentSlot${i + 1}`].value = date
-    }
   }
 }
