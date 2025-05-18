@@ -89,15 +89,9 @@ export const store = {
   applyTextToSelected(text) {
     const toChange = []
 
-    console.log('Aplicando texto a todos os selecionados:', text)
-
-    const selectedTextareas = this.getSelectedTextareas()
-    console.log('Quantidade de textareas selecionados:', selectedTextareas.length)
-
     for (const key in this.textareaMap) {
       const textarea = this.textareaMap[key]
       if (textarea.selected) {
-        console.log(`Atualizando textarea [${key}]`)
         textarea.text = text
         toChange.push({
           date: textarea.date,
@@ -107,6 +101,8 @@ export const store = {
         })
       }
     }
+
+    this.unselectAll()
     this.sendToServer(toChange)
   },
 

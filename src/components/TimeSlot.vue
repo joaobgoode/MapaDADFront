@@ -84,8 +84,6 @@ function saveChanges() {
 
     store.setEditingMode(props.space, props.day, props.time, false)
 
-    store.unselectAll()
-
   }
 }
 

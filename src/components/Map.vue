@@ -17,6 +17,11 @@ const selectedOption = ref('')
 const calendar = ref(null)
 const filter = ref([])
 const selectedDate = ref(new Date())
+const selectedChangedCount = ref(0)
+
+// Array for tracking notifications
+const notifications = ref([])
+let notificationIdCounter = 0
 
 //====    WebSocket    ====/
 
@@ -29,6 +34,16 @@ function handleWebSocketMessage(message) {
   else if (message.type === 'bulkUpdate') {
     if (calendar.value && calendar.value.updateMultipleSlots) {
       calendar.value.updateMultipleSlots(message.data);
+    }
+    let changedCount = 0
+    for (const horario of message.data) {
+      const cell = store.getRegisteredTextArea(horario.space, horario.date, horario.hour)
+      if (cell && cell.selected) {
+        changedCount += 1
+      }
+    }
+    if (changedCount > 0) {
+      createNotification(changedCount)
     }
   }
   else if (message.type === 'espacoDelete') {
@@ -131,6 +146,25 @@ function wasReloaded() {
   return
 }
 
+function createNotification(count) {
+  const id = notificationIdCounter++
+  notifications.value.push({
+    id,
+    count
+  })
+
+  // setTimeout(() => {
+  //   removeNotification(id)
+  // }, 10000)
+}
+
+function removeNotification(id) {
+  const index = notifications.value.findIndex(notification => notification.id === id)
+  if (index !== -1) {
+    notifications.value.splice(index, 1)
+  }
+}
+
 </script>
 <template>
   <AppHeader v-model="selectedOption" v-model:filter="filter" v-model:modelDate="selectedDate" :options="options"
@@ -144,6 +178,20 @@ function wasReloaded() {
     <p class="fw-bold">A janela Foi recarregada devido a mudanças no sistema.</p>
     <p class="fw-bold">Perdão pelo inconveniente.</p>
     <p class="fw-normal">Clique para fechar!</p>
+  </div>
+
+  <!-- Notification System for Changed Cells -->
+  <div class="notifications-container">
+    <div v-for="notification in notifications" :key="notification.id" class="notification-item"
+      @click="removeNotification(notification.id)">
+      <div class="notification-icon">
+        <span class="exclamation">!</span>
+      </div>
+      <div class="notification-text">
+        {{ notification.count }} {{ notification.count === 1 ? 'Horário selecionado mudou' :
+          'Horários selecionados mudaram' }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -175,5 +223,69 @@ function wasReloaded() {
 .reload-warning p {
   margin: 0;
   padding: 10px;
+}
+
+/* New Notification Styles */
+.notifications-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  background-color: rgba(156, 39, 176, 0.85);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.5s;
+}
+
+.notification-item:hover {
+  background-color: rgba(156, 39, 176, 1);
+  transform: translateY(-2px);
+}
+
+.notification-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: white;
+  margin-right: 12px;
+}
+
+.exclamation {
+  color: rgba(156, 39, 176, 1);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.notification-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
