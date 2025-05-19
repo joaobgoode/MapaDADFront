@@ -174,6 +174,15 @@ function handleKeyDown(event) {
   }
 }
 
+function getBestTextColor(backgroundColor) {
+  const color = backgroundColor.charAt(0) === '#' ? backgroundColor.substring(1) : backgroundColor;
+  const r = parseInt(color.substring(0, 2), 16);
+  const g = parseInt(color.substring(2, 4), 16);
+  const b = parseInt(color.substring(4, 6), 16);
+  const luminance = 0.299 * (r / 255) + 0.587 * (g / 255) + 0.114 * (b / 255);
+  return luminance > 0.5 ? "black" : "white";
+}
+
 
 
 </script>
@@ -183,7 +192,8 @@ function handleKeyDown(event) {
   <div class="textarea-wrapper" :class="{
     editing: textareaState.editing,
     selectedOnly: !textareaState.editing && textareaState.selected
-  }" :style="{ backgroundColor: color }" @click="handleClick" @dblclick="handleDoubleClick">
+  }" :style="{ backgroundColor: color, color: getBestTextColor(color) }" @click="handleClick"
+    @dblclick="handleDoubleClick">
 
     <div v-if="!textareaState.editing" class="textarea-content">
       {{ textareaState.text }}

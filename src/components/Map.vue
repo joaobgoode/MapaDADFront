@@ -17,9 +17,7 @@ const selectedOption = ref('')
 const calendar = ref(null)
 const filter = ref([])
 const selectedDate = ref(new Date())
-const selectedChangedCount = ref(0)
 
-// Array for tracking notifications
 const notifications = ref([])
 let notificationIdCounter = 0
 
@@ -180,7 +178,6 @@ function removeNotification(id) {
     <p class="fw-normal">Clique para fechar!</p>
   </div>
 
-  <!-- Notification System for Changed Cells -->
   <div class="notifications-container">
     <div v-for="notification in notifications" :key="notification.id" class="notification-item"
       @click="removeNotification(notification.id)">
@@ -225,7 +222,6 @@ function removeNotification(id) {
   padding: 10px;
 }
 
-/* New Notification Styles */
 .notifications-container {
   position: fixed;
   bottom: 20px;
