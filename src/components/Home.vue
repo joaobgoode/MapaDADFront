@@ -84,7 +84,7 @@
 import { useRouter } from 'vue-router'
 import { ref, reactive } from 'vue'
 import api from '../services/api'
-import { authLogin } from '../services/authService'
+import axios from 'axios'
 
 const router = useRouter()
 const usuario = ref('')
@@ -132,7 +132,10 @@ async function login() {
   }
 
   try {
-    const res = await authLogin(usuario.value, senha.value)
+    const res = await axios.post(import.meta.env.VITE_BASE_URL + '/login', {
+      usuario: usuario.value,
+      senha: senha.value,
+    })
 
     if (res.data && res.data.token) {
       localStorage.setItem('token', res.data.token)
@@ -153,6 +156,7 @@ async function login() {
       erro.value = 'Resposta inválida do servidor: token faltando.'
     }
   } catch (err) {
+    console.error(err)
     erro.value = err.response?.data?.error || 'Erro ao fazer login. Verifique suas credenciais.'
   }
 }

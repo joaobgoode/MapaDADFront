@@ -2,82 +2,35 @@ import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000';
 
-const csrfAxios = axios.create({
-  baseURL,
-  withCredentials: true,
-});
-
 const api = axios.create({
   baseURL,
-  withCredentials: true,
+  withCredentials: true, // Mantenha isso apenas se precisar enviar cookies para outras operações
 });
 
-let csrfPromise = null;
-const getCsrfToken = async () => {
-  const cachedToken = localStorage.getItem('csrfToken');
-  if (cachedToken) {
-    return cachedToken;
-  }
-
-  if (csrfPromise) {
-    return csrfPromise;
-  }
-
-  csrfPromise = csrfAxios.get('/api/csrf-token')
-    .then(response => {
-      const token = response.data.csrfToken;
-      localStorage.setItem('csrfToken', token);
-      csrfPromise = null;
-      return token;
-    })
-    .catch(error => {
-      console.error('Erro ao obter token CSRF:', error);
-      csrfPromise = null;
-      throw error;
-    });
-
-  return csrfPromise;
-};
-
+// Interceptor de requisição simplificado - apenas adiciona o token JWT
 api.interceptors.request.use(
-  async (config) => {
+  (config) => {
     // Adiciona o token de autenticação se disponível
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    if (['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase())) {
-      try {
-        const csrfToken = await getCsrfToken();
-        config.headers = config.headers || {};
-        config.headers['X-CSRF-Token'] = csrfToken;
-
-        //console.log('Header X-CSRF-Token enviado:', config.headers['X-CSRF-Token']);
-      } catch (error) {
-        console.error('Falha ao anexar token CSRF:', error);
-      }
-    }
-
     return config;
   },
   (error) => Promise.reject(error)
 );
 
+// Interceptor de resposta para tratamento de erros
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (
-      error.response &&
-      (error.response.status === 403 || error.response.status === 401) &&
-      (error.response.data.message?.includes('CSRF') ||
-        error.response.data.error?.includes('CSRF') ||
-        error.response.data?.includes('CSRF'))
-    ) {
-      //console.log('Erro de CSRF detectado, removendo token do cache');
-      localStorage.removeItem('csrfToken');
+    // Aqui você pode adicionar lógica para lidar com erros comuns
+    // Por exemplo, redirecionar para página de login se receber 401
+    if (error.response && error.response.status === 401) {
+      // Lógica para lidar com token expirado ou inválido
+      // Por exemplo: localStorage.removeItem('token');
+      // router.push('/login');
     }
-
     return Promise.reject(error);
   }
 );
