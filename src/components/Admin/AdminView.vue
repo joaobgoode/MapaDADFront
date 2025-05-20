@@ -284,7 +284,7 @@ function cancelCreateUser() {
 
 async function createUser(userData) {
   try {
-    const response = await api.post("/api/users", userData); // Send the validated data from modal
+    const response = await api.post("/api/users", userData);
     if (response.status === 201) {
       console.log("Usuário criado com sucesso:", response.data);
       await fetchUsers();
