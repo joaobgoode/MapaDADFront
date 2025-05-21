@@ -3,7 +3,7 @@
     style="position: fixed; top: 0; left: 0; z-index: 1000; height: 70px;">
     <div class="d-flex justify-content-between align-items-center px-3 w-100 h-100">
       <div class="d-flex align-items-center gap-3 h-100">
-        <img class="unifor-logo" src="../../../unifor-online.png" alt="Logotipo da Unifor">
+        <img class="unifor-logo" src="../../../public/unifor-online.png" alt="Logotipo da Unifor">
         <span class="fw-bold fs-5 d-none d-md-block">Admin</span>
         <span class="fw-bold fs-5 d-md-none">Admin</span>
         <ul class="nav nav-pills m-0 h-100 d-flex align-items-center">

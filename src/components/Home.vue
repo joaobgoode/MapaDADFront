@@ -22,7 +22,7 @@
         </form>
       </div>
       <div class="form-right">
-        <img src="../../LOGO_UNIFOR_3_page-0001-removebg-preview.png" alt="Logo Unifor" class="logo-img" />
+        <img src="../../public/LOGO_UNIFOR_3_page-0001-removebg-preview.png" alt="Logo Unifor" class="logo-img" />
       </div>
     </div>
 
